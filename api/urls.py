@@ -10,7 +10,7 @@ urlpatterns = [
     path('changePrefix/<id>', views.home, name='botStatus'),
     path('download/', views.home, name='botStatus'),
     path('dashboard/', views.dashboard, name='dashboard'),
-    path('aboveCamera/', views.cameras),
-    path('belowCamera/', views.cameras),
+    path('aboveCamera/', views.cameras, name='aboveCamera'),
+    path('belowCamera/', views.cameras, name='belowCamera'),
     path('test/', views.test, name='test')
 ]

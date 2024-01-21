@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'api',
     'bootstrap5',
     'django_google_fonts',
+    'django_material_icons',
 ]
 
 MIDDLEWARE = [
@@ -131,4 +132,5 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-GOOGLE_FONTS = ['Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900_']
+GOOGLE_FONTS = ["Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900"]
+STATICFILES_DIRS = [BASE_DIR / "fonts"]

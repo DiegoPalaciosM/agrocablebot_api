@@ -38,28 +38,25 @@ class MQTT:
         try:
             self.topics[msg.topic](loads(msg.payload.decode('utf-8')))
         except Exception as e:
-            print (e)
+            pass
 
     def on_publish(self, client, userdata, result):
-        print (result)
+        pass
 
     def on_disconnect(self, client, userdata, rc):
-        print (client, userdata, rc)
+        pass
         #self.client.loop_stop()
         #self.client.loop_start()
     
     def comandos(self, message):
-        print ('comandos')
         if message.get('interface'):
             self.interfaceCommands[message['interface']]()
 
     def status(self, message):
-        print ('status')
         if (any(key in ['x', 'y', 'z'] for key in message.keys())):
             self.last_position = message
     
     def send_aio(self):
-        print ('send_aio')
         sensores = {
             'acelerometro': {x: round(float(y),4) for x, y in self.sense.get_accelerometer_raw().items()},
             'giroscopio': {x: round(float(commands.offset(y)),4) for x, y in self.sense.get_gyroscope().items()},
@@ -72,7 +69,6 @@ class MQTT:
         self.client.publish('sensores', dumps(sensores))
 
     def send_data(self):
-        print ('send_data')
         self.client.publish(
             'sensores/acelerometro', dumps({x: round(float(y),4) for x, y in self.sense.get_accelerometer_raw().items()}))
         self.client.publish(

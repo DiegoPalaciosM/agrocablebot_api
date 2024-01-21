@@ -62,7 +62,6 @@ class Camera:
         for frame in for_frames:
             self.frame = frame
             self.event.set()
-            print (time.time() - self.last_access )
             if time.time() - self.last_access > 1:
                 for_frames.close()
                 self.camera.release()

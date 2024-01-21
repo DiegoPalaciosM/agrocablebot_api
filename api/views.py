@@ -4,9 +4,8 @@ from django.http import HttpResponse, StreamingHttpResponse
 
 from api.commands import Camera, deviceInfo, gen_frame
 
-camera = {'/aboveCamera/' : Camera(0, 'superior'), '/belowCamera/' : Camera('http://192.168.1.6:4747/video', 'inferior')}
+camera = {'/aboveCamera/' : Camera(2, 'superior'), '/belowCamera/' : Camera(0, 'inferior')}
 
-import threading
 
 # Create your views here.
 
@@ -20,10 +19,10 @@ def dashboard(request):
     return render(request, 'dashboard.html')
 
 def cameras(request):
+    print (request.path)
     return StreamingHttpResponse(gen_frame(camera[request.path]),content_type='multipart/x-mixed-replace; boundary=frame')
 
 def test(request):
     html = ''
-    for th in threading.enumerate():
-        html += th.name + '\n'
+    
     return HttpResponse(html)
