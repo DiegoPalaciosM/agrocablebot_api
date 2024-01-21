@@ -1,0 +1,8 @@
+{% extends 'base.html' %} {% block content %}
+  <a href='/dashboard'>Camaras</a>
+  <div>
+    <h4>Por ahora para cambiar el numero de la prueba. Numero actual {{ prefix }}</h4>
+    <input type='text' id='prefix' />
+    <button onclick='changePrefix()'>cambiar</button>
+  </div>
+{% endblock %}
