@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'api',
+    'mqtt',
     'bootstrap5',
     'django_google_fonts',
     'django_material_icons',
