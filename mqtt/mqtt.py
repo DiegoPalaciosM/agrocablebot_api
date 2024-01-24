@@ -5,8 +5,8 @@ from json import dumps, loads
 from sense_emu import SenseHat
 import paho.mqtt.client as mqtt
 
-
-from agrocablebot import commands
+from agrocablebot.commands import logger
+from api import commands
 from api.models import *
 
 
@@ -48,8 +48,8 @@ class MQTT:
     def on_message(self, client, userdata, msg):
         try:
             self.topics[msg.topic](loads(msg.payload.decode('utf-8')))
-        except Exception as e:
-            print (e)
+        except Exception as error:
+            logger.error(f"{type(error)} {error}")
 
     def on_publish(self, client, userdata, result):
         pass
@@ -62,10 +62,12 @@ class MQTT:
     def comandos(self, message):
         if message.get('interface'):
             self.interfaceCommands[message['interface']]()
+            
 
     def status(self, message):
         if (any(key in ['x', 'y', 'z'] for key in message.keys())):
             self.last_position = message
+
     
     def send_aio(self):
         sensores = {
@@ -108,6 +110,8 @@ class MQTT:
         hume.save()
         pres.save()
         temp.save()
+        self.cameras['/aboveCam/'].save_frame(self.last_position, Configuracion.objects.get(name='numeroPrueba').data)
+        self.cameras['/belowCam/'].save_frame(self.last_position, Configuracion.objects.get(name='numeroPrueba').data)
         
 
 

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <table class="table table-striped table-hover table-bordered table-sm bg-white table-fixed">
+      <thead>
+        <tr>
+          <td class='col-md-6'>Nombre</td>
+          <td class='col-md-1'>Descargar</td>
+          <td class='col-md-1'>Eliminar</td>
+        </tr>
+      </thead>
+      <tbody>
+        {% for file in files%}
+        <tr>
+          <td>{{file}}</td>
+          <td><a class="btn btn-primary" href="/download/{{file}}" id="dwl">Descargar</a></td>
+          <td><a class="btn btn-danger" href="/delete/{{file}}" id="dlt">Eliminar</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+{% endblock %}

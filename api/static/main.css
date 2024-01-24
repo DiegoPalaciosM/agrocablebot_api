@@ -7,10 +7,17 @@ body {
     font-family: 'Roboto', sans-serif;
     font-weight: 500;
     /* background-color: var(--bgcolor); */
+    margin: 0;
     display: flex;
-    flex-flow: column;
-    height: 100%;
+  flex-flow: column;
+  height: 100%;
+
 }
+
+td {
+    text-align: center;
+    vertical-align: middle;
+  }
 
 .container-fluid {
     --bs-gutter-x: 5rem;
@@ -41,13 +48,11 @@ body {
     border-color: var(--textcolor);
 }
 
-#content {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: black;
-}
+.content {
+    flex: 1 1 auto;
+  }
 
-.home {
-    background-color: white;
+.img-fluid {
+    max-width: 100%;
+    height: auto;
 }

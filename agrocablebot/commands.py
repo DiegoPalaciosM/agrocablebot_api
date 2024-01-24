@@ -35,9 +35,3 @@ stdout_handler.setLevel(logging.DEBUG)
 stdout_handler.setFormatter(CustomFormatter(fmt))
 
 logger.addHandler(stdout_handler)
-
-def offset(value):
-    if value >= 0 and value < 180:
-        return value * (360 - 180) / 180 + 180
-    elif value > 180:
-        return (value - 180) * (180 - 0) / (360 - 180) + 0

@@ -3,12 +3,15 @@ import os
 import time
 import cv2
 import threading
-
-import asyncio
+import imageio
+import zipfile
+import filecmp
 
 from greenlet import getcurrent
 
+from agrocablebot.settings import DATA_PATH
 from agrocablebot.commands import logger
+
 
 class CameraEvent(object):
     def __init__(self):
@@ -38,7 +41,8 @@ class CameraEvent(object):
         self.events[getcurrent()][0].clear()
 
 class Camera:
-    def __init__(self, source, cname):
+    def __init__(self, source, cname, resolution):
+        self.resolution = resolution
         self.source = source
         self.cname = cname
         self.frame = None
@@ -50,6 +54,8 @@ class Camera:
     def create_thread(self):
         if self.thread is None:
             self.camera = cv2.VideoCapture(self.source)
+            self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, int(self.resolution[0]))
+            self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, int(self.resolution[1]))
             self.last_access = time.time()
 
             self.thread = threading.Thread(target=self.thread_function) # type: ignore
@@ -84,6 +90,11 @@ class Camera:
         self.event.clear()
         return self.frame
 
+    def save_frame(self, pos, prueba, path=DATA_PATH):
+        os.makedirs(f"{path}/{prueba}/fotos/{self.cname}/", exist_ok=True)
+        self.create_thread()
+        cv2.imwrite(f"{path}/{prueba}/fotos/{self.cname}/{getIndex(pos)}_{pos}.png", self.frameData)
+
 
 def gen_frame(camera):
     camera.create_thread()
@@ -99,35 +110,66 @@ def gen_screenshot(self, camera):
         return screenshot
     return ''
 
-def deviceInfo():
+def deviceInfo(*args, **kwargs):
     try:
         ssid = subprocess.check_output(['iwgetid']).decode('utf-8').split('"')[1]
         mac = subprocess.check_output(
             ['cat', '/sys/class/net/wlp2s0/address']).decode('utf-8').strip('\n')
-    except:
+    except Exception as error:
         ssid = 'error'
         mac = 'error'
+        logger.error(f"{type(error)} {error}")
     return {'ssid' : ssid, 'mac' : mac, 'name' : 'imacuna'}
 
-def cameraID():
+def cameraInfo():
     ids = {'above' : 0, 'below' : 1}
+    resolutions = {'above' : [], 'below' : []}
     res = subprocess.run(['v4l2-ctl','--list-devices'], stdout=subprocess.PIPE)
     resDecoded = res.stdout.decode().split('\n')
     for i in range(len(resDecoded)):
         if os.environ['ABOVE_CAMERA'] in resDecoded[i]:
             ids['above'] = int(resDecoded[i+1].strip('\t/dev/video'))
+            temp = subprocess.Popen(['v4l2-ctl', '-d', f'{ids['above']}', '--list-formats-ext'], stdout=subprocess.PIPE)
+            temp2 = subprocess.check_output(('grep', 'x'), stdin=temp.stdout)
+            resolutions['above'] = temp2.decode('utf-8').split('\n')[0].split('\t')[2].split(' ')[-1].split('x')
         elif os.environ['BELOW_CAMERA'] in resDecoded[i]:
             ids['below'] = int(resDecoded[i+1].strip('\t/dev/video'))
-    return ids
+            temp = subprocess.Popen(['v4l2-ctl', '-d', f'{ids['below']}', '--list-formats-ext'], stdout=subprocess.PIPE)
+            temp2 = subprocess.check_output(('grep', 'x'), stdin=temp.stdout)
+            resolutions['below'] = temp2.decode('utf-8').split('\n')[0].split('\t')[2].split(' ')[-1].split('x')
+    return ids, resolutions
+
+
+def offset(value):
+    if value >= 0 and value < 180:
+        return value * (360 - 180) / 180 + 180
+    elif value > 180:
+        return (value - 180) * (180 - 0) / (360 - 180) + 0
 
 def getIndex(pos):
     aportex = 0.1
     aportey = 1
 
-    pos[0] = pos[0]/100
-    pos[1] = pos[1]/100
+    posA = pos
+    
+    posA['x'] = posA['x']/100 
+    posA['y'] = posA['y']/100
 
-    x = (pos[0] - pos[0]%1 + 4) + (pos[0]%1 * aportex)
-    y = ((-pos[1] + pos[1]%1 + 4) * 9) - ((pos[1]%1 * aportey))
-    #(f'X({pos[0]} Y({pos[1]}))',x+y)
+    x = (posA['x'] - posA['x']%1 + 4) + (posA['x']%1 * aportex)
+    y = ((-posA['y'] + posA['y']%1 + 4) * 9) - ((posA['y']%1 * aportey))
+    #(f"X({pos[0]} Y({pos[1]}))",x+y)
     return x+y
+
+def exportGif(prueba):
+    cameras = ['superior', 'inferior']
+    for camera in cameras:
+        path = f'{DATA_PATH}/{prueba}/fotos/{camera}'
+        names = os.listdir(path)
+        names.sort()
+        images = []
+        for n in names:
+            images.append(imageio.imread(f'{path}/{n}'))
+            imageio.imread(f'{path}/{n}')
+        imageio.mimsave(f'{path}.gif', images)
+
+
