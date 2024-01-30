@@ -1,0 +1,58 @@
+:root {
+    --bgcolor: #171123;
+    --textcolor: #f3eff9;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    /* background-color: var(--bgcolor); */
+    margin: 0;
+    display: flex;
+  flex-flow: column;
+  height: 100%;
+
+}
+
+td {
+    text-align: center;
+    vertical-align: middle;
+  }
+
+.container-fluid {
+    --bs-gutter-x: 5rem;
+}
+
+.navbar,
+.nav-link {
+    background-color: var(--bgcolor);
+    font-size: calc(0.6rem + 1vw);
+    color: var(--textcolor);
+}
+
+.navbar-brand {
+    font-size: calc(1.2rem + 2vw);
+    color: var(--textcolor);
+}
+
+.nav-link:hover,
+.navbar-brand:hover {
+    color: #918f95;
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(243,239,249, 1)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
+}
+
+.navbar-toggler {
+    border-color: var(--textcolor);
+}
+
+.content {
+    flex: 1 1 auto;
+  }
+
+.img-fluid {
+    max-width: 100%;
+    height: auto;
+}

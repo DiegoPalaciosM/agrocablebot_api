@@ -2,7 +2,8 @@ import django
 import os
 import uuid
 from json import dumps, loads
-from sense_emu import SenseHat
+#from sense_emu import SenseHat
+#from sense_hat import SenseHat
 import paho.mqtt.client as mqtt
 
 from agrocablebot.commands import logger
@@ -36,7 +37,7 @@ class MQTT:
         self.client.on_publish = self.on_publish
         #self.client.on_disconnect = self.on_disconnect
         self.client.connect(os.environ['MQTT_BROKER_HOST'], int(os.environ['MQTT_BROKER_PORT']))
-        self.sense = SenseHat()
+        #self.sense = SenseHat()
         self.topics = {'comandos' : self.comandos, 'status' : self.status}
         self.interfaceCommands = {'send_data' : self.send_data, 'send_aio' : self.send_aio}
         self.last_position = {'x' : 0, 'y' : 0, 'z' : 0}
@@ -61,7 +62,8 @@ class MQTT:
     
     def comandos(self, message):
         if message.get('interface'):
-            self.interfaceCommands[message['interface']]()
+            pass
+            #self.interfaceCommands[message['interface']]()
             
 
     def status(self, message):

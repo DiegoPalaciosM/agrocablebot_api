@@ -4,13 +4,16 @@ import time
 import cv2
 import threading
 import imageio
-import zipfile
-import filecmp
+import inspect
+import sys
+import csv
 
 from greenlet import getcurrent
+from json import dumps
 
 from agrocablebot.settings import DATA_PATH
 from agrocablebot.commands import logger
+from api import models
 
 
 class CameraEvent(object):
@@ -129,12 +132,12 @@ def cameraInfo():
     for i in range(len(resDecoded)):
         if os.environ['ABOVE_CAMERA'] in resDecoded[i]:
             ids['above'] = int(resDecoded[i+1].strip('\t/dev/video'))
-            temp = subprocess.Popen(['v4l2-ctl', '-d', f'{ids['above']}', '--list-formats-ext'], stdout=subprocess.PIPE)
+            temp = subprocess.Popen(['v4l2-ctl', '-d', f'{ids["above"]}', '--list-formats-ext'], stdout=subprocess.PIPE)
             temp2 = subprocess.check_output(('grep', 'x'), stdin=temp.stdout)
             resolutions['above'] = temp2.decode('utf-8').split('\n')[0].split('\t')[2].split(' ')[-1].split('x')
         elif os.environ['BELOW_CAMERA'] in resDecoded[i]:
             ids['below'] = int(resDecoded[i+1].strip('\t/dev/video'))
-            temp = subprocess.Popen(['v4l2-ctl', '-d', f'{ids['below']}', '--list-formats-ext'], stdout=subprocess.PIPE)
+            temp = subprocess.Popen(['v4l2-ctl', '-d', f'{ids["below"]}', '--list-formats-ext'], stdout=subprocess.PIPE)
             temp2 = subprocess.check_output(('grep', 'x'), stdin=temp.stdout)
             resolutions['below'] = temp2.decode('utf-8').split('\n')[0].split('\t')[2].split(' ')[-1].split('x')
     return ids, resolutions
@@ -161,15 +164,32 @@ def getIndex(pos):
     return x+y
 
 def exportGif(prueba):
-    cameras = ['superior', 'inferior']
-    for camera in cameras:
-        path = f'{DATA_PATH}/{prueba}/fotos/{camera}'
-        names = os.listdir(path)
-        names.sort()
-        images = []
-        for n in names:
-            images.append(imageio.imread(f'{path}/{n}'))
-            imageio.imread(f'{path}/{n}')
-        imageio.mimsave(f'{path}.gif', images)
+    try:
+        cameras = ['superior', 'inferior']
+        for camera in cameras:
+            path = f'{DATA_PATH}/{prueba}/fotos/{camera}'
+            names = os.listdir(path)
+            names.sort()
+            images = []
+            for n in names:
+                images.append(imageio.imread(f'{path}/{n}'))
+                imageio.imread(f'{path}/{n}')
+            imageio.mimsave(f'{path}.gif', images)
+    except Exception as error:
+        logger.error(f"{type(error)} error")
 
-
+def csvWritter(filename, nprueba):
+    os.makedirs(f'{filename}', exist_ok=True)
+    for name, obj in inspect.getmembers(sys.modules[models.__name__]):
+        if inspect.isclass(obj):
+            try:
+                if hasattr(obj, 'prueba'):
+                    registros = obj.objects.filter(prueba = nprueba).values_list()
+                    keys = [field.name for field in obj._meta.fields][1:-2]
+                    with open(f'{filename}/{obj.name}.csv', 'w', newline='') as csvfile:
+                        writer = csv.writer(csvfile)
+                        writer.writerow(keys)
+                        writer.writerows([registro[1:-2] for registro in registros])
+            except Exception as error:
+                logger.error(f"{type(error)} {error}")
+    pass

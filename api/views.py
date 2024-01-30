@@ -12,7 +12,7 @@ import shutil
 
 from agrocablebot.settings import DATA_PATH
 from agrocablebot.commands import logger
-from api.commands import Camera, deviceInfo, gen_frame, cameraInfo, exportGif
+from api.commands import Camera, deviceInfo, gen_frame, cameraInfo, exportGif, csvWritter
 from api import models
 from mqtt.mqtt import MQTT_CLIENT
 
@@ -25,7 +25,7 @@ MQTT_CLIENT.client.loop_start()
 # Create your views here.
 
 def home(request):
-    return render(request, 'home.html')
+    return render(request, 'home.html', {'prefix':models.Configuracion.objects.get(name = 'numeroPrueba')})
 
 def cameras(request):
     return StreamingHttpResponse(gen_frame(camera[request.path]),content_type='multipart/x-mixed-replace; boundary=frame')
@@ -58,6 +58,7 @@ def download(request, file = None):
         cwd = os.getcwd()
         exportGif(file)
         os.system(f'cd {DATA_PATH} && zip -qr {file}.zip {file} && cd {cwd}')
+        csvWritter(f"{DATA_PATH}/{file}/csv", file)
         with open(os.path.join(DATA_PATH, f'{file}.zip'), 'rb') as f:
                 data = f.readlines()
         os.remove(os.path.join(DATA_PATH, f'{file}.zip'))
@@ -70,6 +71,15 @@ def delete(request, file):
     if file:
         shutil.rmtree(f'{DATA_PATH}/{file}')
     return redirect('download')
+
+def changePrefix(request, prefix=None):
+    print (request.method)
+    if prefix:
+        print (prefix)
+        temp = models.Configuracion.objects.get(name = 'numeroPrueba')
+        temp.data = prefix
+        temp.save()
+    return redirect('home')
 
 def test(request):
     html = ''

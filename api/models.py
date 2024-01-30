@@ -3,6 +3,8 @@ from django.db import models
 from json import loads
 import datetime
 
+from api.commands import getIndex
+
 # Create your models here.
 
 class Acelerometro(models.Model):
@@ -25,7 +27,7 @@ class Acelerometro(models.Model):
         self.pos_x = pos['x']
         self.pos_y = pos['y']
         self.pos_z = pos['z']
-        self.pos_id = 0
+        self.pos_id = getIndex(pos)
         self.fecha_creacion = datetime.datetime.now()
         return json
 
@@ -49,7 +51,7 @@ class Giroscopio(models.Model):
         self.pos_x = pos['x']
         self.pos_y = pos['y']
         self.pos_z = pos['z']
-        self.pos_id = 0
+        self.pos_id = getIndex(pos)
         self.fecha_creacion = datetime.datetime.now()
         return json
 
@@ -73,7 +75,7 @@ class Magnetometro(models.Model):
         self.pos_x = pos['x']
         self.pos_y = pos['y']
         self.pos_z = pos['z']
-        self.pos_id = 0
+        self.pos_id = getIndex(pos)
         self.fecha_creacion = datetime.datetime.now()
         return json
 
@@ -97,7 +99,7 @@ class Orientacion(models.Model):
         self.pos_x = pos['x']
         self.pos_y = pos['y']
         self.pos_z = pos['z']
-        self.pos_id = 0
+        self.pos_id = getIndex(pos)
         self.fecha_creacion = datetime.datetime.now()
         return json
 
@@ -117,7 +119,7 @@ class Humedad(models.Model):
         self.pos_x = pos['x']
         self.pos_y = pos['y']
         self.pos_z = pos['z']
-        self.pos_id = 0
+        self.pos_id = getIndex(pos)
         self.fecha_creacion = datetime.datetime.now()
         return json
 
@@ -137,7 +139,7 @@ class Presion(models.Model):
         self.pos_x = pos['x']
         self.pos_y = pos['y']
         self.pos_z = pos['z']
-        self.pos_id = 0
+        self.pos_id = getIndex(pos)
         self.fecha_creacion = datetime.datetime.now()
         return json
 
@@ -157,7 +159,7 @@ class Temperatura(models.Model):
         self.pos_x = pos['x']
         self.pos_y = pos['y']
         self.pos_z = pos['z']
-        self.pos_id = 0
+        self.pos_id = getIndex(pos)
         self.fecha_creacion = datetime.datetime.now()
         return json
 
