@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="/favicon.ico" sizes="32x32">
+  <title>Home</title>
+  <script>
+    async function changePrefix() {
+      var value = document.getElementById("prefix").value;
+      if (Number.isInteger(parseInt(value)) == true) {
+        fetch('/changePrefix/' + value, {
+          method: 'GET',
+        }).then(response => {
+          document.getElementById("prefix").value = '';
+          document.location.reload();
+        });
+      }
+    }
+  </script>
+</head>
+
+<body>
+  <a href="/download">Descargar archivos de pruebas</a>
+  <a href="/cameras">Camaras</a>
+  <a href="/screenshot">1</a>
+  <a href="{{url_for('screenshot')}}">2</a>
+  <div>
+    <h4>Por ahora para cambiar el numero de la prueba. Numero actual {{prefix}}</h4>
+    <input type="text" id="prefix">
+    <button onclick="changePrefix()">cambiar</button>
+  </div>
+
+</body>
+
+</html>

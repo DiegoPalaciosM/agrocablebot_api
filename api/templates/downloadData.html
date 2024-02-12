@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Archivos</title>
+  <script>
+    
+  </script>
+</head>
+
+<body>
+  <a href="/">Home</a>
+  <table class="table table-striped table-hover table-bordered table-sm bg-white">
+    <thead>
+      <tr>
+        <td class='col-md-3'>Nombre</td>
+        <td class='col-md-1'>Descargar</td>
+      </tr>
+    </thead>
+    <tbody>
+      {% for file in files %}
+      <tr>
+        <td>{{file}}</td>
+        <td><a href="/downloadFile/{{file}}">Descargar</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+
+</html>
