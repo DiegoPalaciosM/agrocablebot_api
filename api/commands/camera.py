@@ -1,32 +1,41 @@
-import subprocess
 import os
-import time
 import cv2
-import threading
 import imageio
-import inspect
-import sys
-import csv
-
 from greenlet import getcurrent
-from json import dumps
+import threading
+import time
 
+from api.commands.functions import getIndex
+from api.commands.information import cameraInfo
 from agrocablebot.settings import DATA_PATH
-from agrocablebot.commands import logger
-from api import models
-
+from agrocablebot.commands import singleton, logger
 
 class CameraEvent(object):
+    """
+    Una clase que implementa una primitiva de sincronización para eventos entre hilos.
+    """
     def __init__(self):
+        """
+        Inicializa una nueva instancia de la clase CameraEvent.
+        """
         self.events = {}
 
     def wait(self):
+        """
+        Espera a que ocurra un evento.
+
+        Devuelve:
+            Un bool que indica si el evento ocurrió.
+        """
         ident = getcurrent()
         if ident not in self.events:
             self.events[ident] = [threading.Event(), time.time()]
         return self.events[ident][0].wait()
 
     def set(self):
+        """
+        Establece el evento.
+        """
         now = time.time()
         remove = None
         for ident, event in self.events.items():
@@ -41,12 +50,22 @@ class CameraEvent(object):
             del self.events[remove]
 
     def clear(self):
+        """
+        Borra el evento.
+        """
         self.events[getcurrent()][0].clear()
 
 class Camera:
-    def __init__(self, source, cname, resolution):
-        self.resolution = resolution
-        self.source = source
+    """
+    Una clase que representa una cámara.
+    """
+    def __init__(self, cname):
+        """
+        Inicializa una nueva instancia de la clase Camera.
+
+        Args:
+            cname (str): El nombre de la cámara.
+        """
         self.cname = cname
         self.frame = None
         self.frameData = None
@@ -55,7 +74,11 @@ class Camera:
         self.thread = None
         
     def create_thread(self):
+        """
+        Crear un hilo para leer fotogramas de la cámara.
+        """
         if self.thread is None:
+            self.source, self.resolution = cameraInfo(self.cname)
             self.camera = cv2.VideoCapture(self.source)
             self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, int(self.resolution[0]))
             self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, int(self.resolution[1]))
@@ -67,6 +90,9 @@ class Camera:
             self.event.wait()
         
     def thread_function(self):
+        """
+        La función que se ejecuta en el hilo para leer fotogramas de la cámara.
+        """
         for_frames = self.frames()
         for frame in for_frames:
             self.frame = frame
@@ -78,6 +104,9 @@ class Camera:
         self.thread = None
 
     def frames(self):
+        """
+        Un generador que produce fotogramas de la cámara.
+        """
         while True:
             success, img = self.camera.read()
             if not success:
@@ -87,6 +116,12 @@ class Camera:
             yield buffer.tobytes()
     
     def get_frame(self):
+        """
+        Obtiene el último fotograma de la cámara.
+
+        Devuelve:
+            El último fotograma de la cámara.
+        """
         self.last_access = time.time()
 
         self.event.wait()
@@ -94,12 +129,51 @@ class Camera:
         return self.frame
 
     def save_frame(self, pos, prueba, path=DATA_PATH):
+        """
+        Guarda un fotograma de la cámara.
+
+        Args:
+            pos (dict): La posición de la cámara.
+            prueba (str): El nombre de la prueba.
+            path (str, opcional): La ruta en la que guardar el fotograma. Por defecto es DATA_PATH.
+        """
         os.makedirs(f"{path}/{prueba}/fotos/{self.cname}/", exist_ok=True)
         self.create_thread()
         cv2.imwrite(f"{path}/{prueba}/fotos/{self.cname}/{getIndex(pos)}_{pos}.png", self.frameData)
 
 
+@singleton
+class AboveCamera(Camera):
+    """
+    Clase que representa la cámara de arriba.
+    """
+    def __init__(self):
+        """
+        Inicializa una nueva instancia de la clase AboveCamera.
+        """
+        Camera.__init__(self, 'ABOVE_CAMERA')
+
+@singleton
+class BelowCamera(Camera):
+    """
+    Clase que representa la cámara inferior.
+    """
+    def __init__(self):
+        """
+        Inicializa una nueva instancia de la clase BelowCamera.
+        """
+        Camera.__init__(self, 'BELOW_CAMERA')
+
 def gen_frame(camera):
+    """
+    Genera un fotograma desde la cámara especificada.
+
+    Args:
+        camera (Cámara): La cámara desde la que generar el fotograma.
+
+    Produce:
+        Un fotograma de la cámara especificada.
+    """
     camera.create_thread()
     while True:
         frame = camera.get_frame()
@@ -107,63 +181,29 @@ def gen_frame(camera):
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
     
 def gen_screenshot(self, camera):
+    """
+    Genera una captura de pantalla desde la cámara especificada.
+
+    Args:
+        camera (Cámara, opcional): La cámara desde la que generar la captura de pantalla. Por defecto es None.
+
+    Devuelve:
+        La captura de pantalla de la cámara especificada.
+    """
     if camera:
         camera.create_thread()
         screenshot = camera.get_frame()
         return screenshot
     return ''
 
-def deviceInfo(*args, **kwargs):
-    try:
-        ssid = subprocess.check_output(['iwgetid']).decode('utf-8').split('"')[1]
-        mac = subprocess.check_output(
-            ['cat', '/sys/class/net/wlp2s0/address']).decode('utf-8').strip('\n')
-    except Exception as error:
-        ssid = 'error'
-        mac = 'error'
-        logger.error(f"{type(error)} {error}")
-    return {'ssid' : ssid, 'mac' : mac, 'name' : 'imacuna'}
-
-def cameraInfo():
-    ids = {'above' : 0, 'below' : 1}
-    resolutions = {'above' : [], 'below' : []}
-    res = subprocess.run(['v4l2-ctl','--list-devices'], stdout=subprocess.PIPE)
-    resDecoded = res.stdout.decode().split('\n')
-    for i in range(len(resDecoded)):
-        if os.environ['ABOVE_CAMERA'] in resDecoded[i]:
-            ids['above'] = int(resDecoded[i+1].strip('\t/dev/video'))
-            temp = subprocess.Popen(['v4l2-ctl', '-d', f'{ids["above"]}', '--list-formats-ext'], stdout=subprocess.PIPE)
-            temp2 = subprocess.check_output(('grep', 'x'), stdin=temp.stdout)
-            resolutions['above'] = temp2.decode('utf-8').split('\n')[0].split('\t')[2].split(' ')[-1].split('x')
-        elif os.environ['BELOW_CAMERA'] in resDecoded[i]:
-            ids['below'] = int(resDecoded[i+1].strip('\t/dev/video'))
-            temp = subprocess.Popen(['v4l2-ctl', '-d', f'{ids["below"]}', '--list-formats-ext'], stdout=subprocess.PIPE)
-            temp2 = subprocess.check_output(('grep', 'x'), stdin=temp.stdout)
-            resolutions['below'] = temp2.decode('utf-8').split('\n')[0].split('\t')[2].split(' ')[-1].split('x')
-    return ids, resolutions
-
-
-def offset(value):
-    if value >= 0 and value < 180:
-        return value * (360 - 180) / 180 + 180
-    elif value > 180:
-        return (value - 180) * (180 - 0) / (360 - 180) + 0
-
-def getIndex(pos):
-    aportex = 0.1
-    aportey = 1
-
-    posA = pos
-    
-    posA['x'] = posA['x']/100 
-    posA['y'] = posA['y']/100
-
-    x = (posA['x'] - posA['x']%1 + 4) + (posA['x']%1 * aportex)
-    y = ((-posA['y'] + posA['y']%1 + 4) * 9) - ((posA['y']%1 * aportey))
-    #(f"X({pos[0]} Y({pos[1]}))",x+y)
-    return x+y
 
 def exportGif(prueba):
+    """
+    Exporta un gif de la prueba especificada.
+
+    Args:
+        prueba (str): El nombre de la prueba.
+    """
     try:
         cameras = ['superior', 'inferior']
         for camera in cameras:
@@ -177,19 +217,3 @@ def exportGif(prueba):
             imageio.mimsave(f'{path}.gif', images)
     except Exception as error:
         logger.error(f"{type(error)} error")
-
-def csvWritter(filename, nprueba):
-    os.makedirs(f'{filename}', exist_ok=True)
-    for name, obj in inspect.getmembers(sys.modules[models.__name__]):
-        if inspect.isclass(obj):
-            try:
-                if hasattr(obj, 'prueba'):
-                    registros = obj.objects.filter(prueba = nprueba).values_list()
-                    keys = [field.name for field in obj._meta.fields][1:-2]
-                    with open(f'{filename}/{obj.name}.csv', 'w', newline='') as csvfile:
-                        writer = csv.writer(csvfile)
-                        writer.writerow(keys)
-                        writer.writerows([registro[1:-2] for registro in registros])
-            except Exception as error:
-                logger.error(f"{type(error)} {error}")
-    pass

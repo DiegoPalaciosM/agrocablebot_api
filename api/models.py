@@ -1,9 +1,8 @@
 from django.db import models
 
-from json import loads
 import datetime
 
-from api.commands import getIndex
+from api.commands.functions import getIndex
 
 # Create your models here.
 

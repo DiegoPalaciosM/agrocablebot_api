@@ -14,6 +14,11 @@ from pathlib import Path
 
 import os
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -40,7 +45,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'api',
-    'mqtt',
     'django_google_fonts',
 ]
 
@@ -48,7 +52,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    #'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -127,12 +131,41 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'static'
 
-print (STATIC_ROOT)
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-GOOGLE_FONTS = ["Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900"]
+"""
+Google Fonts para Django
+
+Esta aplicación proporciona una forma de utilizar Google Fonts en proyectos Django.
+
+Uso:
+
+INSTALLED_APPS = [
+   ...
+    'django_google_fonts',
+]
+
+GOOGLE_FONTS = [
+    "Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900"
+]
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "fonts")
+]
+
+Añade 'django_google_fonts' a la configuración INSTALLED_APPS.
+
+Añade las Google Fonts que quieras usar a la configuración GOOGLE_FONTS.
+
+Añade el directorio "fonts" a tu configuración STATICFILES_DIRS.
+
+Ya está. Ya puedes utilizar Google Fonts en el proyecto.
+"""
+
+GOOGLE_FONTS = [
+    "Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900"]
 STATICFILES_DIRS = [BASE_DIR / "fonts"]
 DATA_PATH = f'{Path.home()}/AgroCableBot/data'
