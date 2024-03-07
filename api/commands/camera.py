@@ -80,8 +80,9 @@ class Camera:
         if self.thread is None:
             self.source, self.resolution = cameraInfo(self.cname)
             self.camera = cv2.VideoCapture(self.source)
-            self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, int(self.resolution[0]))
-            self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, int(self.resolution[1]))
+            #self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, int(self.resolution[0]))
+            #self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, int(self.resolution[1]))
+            self.camera.set(cv2.CAP_PROP_BUFFERSIZE, 1)
             self.last_access = time.time()
 
             self.thread = threading.Thread(target=self.thread_function) # type: ignore
@@ -113,6 +114,7 @@ class Camera:
                 break
             ret, buffer = cv2.imencode('.jpg', img) 
             self.frameData = img
+            time.sleep(0.033)
             yield buffer.tobytes()
     
     def get_frame(self):

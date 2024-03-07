@@ -29,7 +29,7 @@ def deviceInfo(*args, **kwargs):
     except Exception as error:
         ssid = 'error'
         logger.error(f"{type(error)} {error}")
-    return {'ssid' : ssid, 'name' : Configuracion.objects.get(name = 'numeroPrueba').data}
+    return {'ssid' : ssid, 'name' : Configuracion.objects.get(name = 'nombreDispositivo').data}
 
 def cameraInfo2():
     ids = {'above' : 0, 'below' : 1}

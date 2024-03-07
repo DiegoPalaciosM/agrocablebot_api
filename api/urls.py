@@ -12,5 +12,6 @@ urlpatterns = [
     path('download/<file>', views.download, name='downloadFile'),
     path('delete/<file>', views.delete, name='deleteFile'),
     path("changePrefix/<prefix>", views.changePrefix, name="changePrefix"),
+    path('changeName/<name>', views.changeName, name='changeName'),
     path('test/', views.test, name='test')
 ]

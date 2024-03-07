@@ -156,9 +156,15 @@ def changePrefix(request, prefix=None):
     HttpResponseRedirect: Una respuesta HTTP que redirige al usuario de vuelta a la página de inicio.
     """
     if prefix:
-        print (prefix)
         temp = models.Configuracion.objects.get(name = 'numeroPrueba')
         temp.data = prefix
+        temp.save()
+    return redirect('home')
+
+def changeName(request, name=None):
+    if name:
+        temp = models.Configuracion.objects.get(name = 'nombreDispositivo')
+        temp.data = name
         temp.save()
     return redirect('home')
 
