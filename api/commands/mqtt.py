@@ -2,8 +2,8 @@ import django
 import os
 import uuid
 from json import dumps, loads
-from sense_emu import SenseHat
-#from sense_hat import SenseHat
+#from sense_emu import SenseHat
+from sense_hat import SenseHat
 import paho.mqtt.client as mqtt
 
 from agrocablebot.commands import logger, singleton
